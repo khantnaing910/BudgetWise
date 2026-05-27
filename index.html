@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💸</text></svg>">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="BudgetWise - A personal finance manager to track income, expenses, budgets, and savings goals." />
+  <title>BudgetWise — Personal Finance Manager</title>
+
+  <!-- Google Fonts: Sora + Fraunces -->
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,700;0,9..144,900;1,9..144,400&display=swap" rel="stylesheet" />
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="print.css" media="print" />
+</head>
+<body>
+
+<!-- Sidebar Overlay -->
+<div id="sidebar-overlay" onclick="closeMobileSidebar()"></div>
+
+<!-- ============================================================
+     SIDEBAR
+============================================================ -->
+<nav id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon"><i class="fas fa-wallet"></i></div>
+    <span class="logo-text">Budget<span>Wise</span></span>
+  </div>
+
+  <div class="sidebar-nav">
+    <div class="nav-section-label">Main</div>
+
+    <div class="nav-item active" onclick="navigateTo('dashboard')" data-section="dashboard" data-tooltip="Dashboard">
+      <span class="nav-icon"><i class="fas fa-chart-pie"></i></span>
+      <span class="nav-label">Dashboard</span>
+    </div>
+
+    <div class="nav-item" onclick="navigateTo('transactions')" data-section="transactions" data-tooltip="Transactions">
+      <span class="nav-icon"><i class="fas fa-exchange-alt"></i></span>
+      <span class="nav-label">Transactions</span>
+      <span class="nav-badge" id="txBadge">0</span>
+    </div>
+
+    <div class="nav-section-label" style="margin-top:10px;">Planning</div>
+
+    <div class="nav-item" onclick="navigateTo('budget')" data-section="budget" data-tooltip="Budget Planner">
+      <span class="nav-icon"><i class="fas fa-tasks"></i></span>
+      <span class="nav-label">Budget Planner</span>
+    </div>
+
+    <div class="nav-item" onclick="navigateTo('goals')" data-section="goals" data-tooltip="Savings Goals">
+      <span class="nav-icon"><i class="fas fa-bullseye"></i></span>
+      <span class="nav-label">Savings Goals</span>
+      <span class="nav-badge" id="goalsBadge">0</span>
+    </div>
+
+    <div class="nav-section-label" style="margin-top:10px;">Analytics</div>
+
+    <div class="nav-item" onclick="navigateTo('reports')" data-section="reports" data-tooltip="Reports">
+      <span class="nav-icon"><i class="fas fa-chart-bar"></i></span>
+      <span class="nav-label">Reports</span>
+    </div>
+
+    <div class="nav-section-label" style="margin-top:10px;">Account</div>
+
+    <div class="nav-item" onclick="navigateTo('settings')" data-section="settings" data-tooltip="Settings">
+      <span class="nav-icon"><i class="fas fa-cog"></i></span>
+      <span class="nav-label">Settings</span>
+    </div>
+  </div>
+
+  <div class="sidebar-footer">
+    <button class="sidebar-toggle-btn" onclick="toggleSidebar()" id="sidebarToggleBtn" data-tooltip="Collapse" aria-label="Toggle Sidebar">
+      <i class="fas fa-chevron-left" id="sidebarToggleIcon"></i>
+    </button>
+  </div>
+</nav>
+
+<!-- ============================================================
+     MAIN CONTENT
+============================================================ -->
+<main id="main-content">
+  <!-- Top Header -->
+  <header class="top-header">
+    <button class="hamburger-btn" onclick="openMobileSidebar()" aria-label="Open Sidebar">
+      <i class="fas fa-bars"></i>
+    </button>
+    <div>
+      <div class="header-title" id="headerTitle">Dashboard</div>
+      <div class="header-subtitle" id="headerSubtitle">Good morning! 👋</div>
+    </div>
+    <div class="header-right">
+      <button class="add-tx-btn" onclick="navigateTo('transactions'); setTimeout(()=>document.getElementById('descInput').focus(),300)" data-tooltip="New Transaction (N)">
+        <i class="fas fa-plus"></i>
+        <span>Add Transaction</span>
+      </button>
+      <button class="header-btn" onclick="toggleDarkMode()" id="darkModeBtn" data-tooltip="Toggle Dark Mode" aria-label="Toggle Dark Mode">
+        <i class="fas fa-moon"></i>
+      </button>
+      <div class="user-avatar" id="userAvatar" onclick="navigateTo('settings')">U</div>
+    </div>
+  </header>
+
+  <!-- Page Content -->
+  <div class="page-content">
+
+    <!-- ========================================================
+         DASHBOARD SECTION
+    ======================================================== -->
+    <section id="section-dashboard" class="section active">
+
+      <!-- Welcome card (shown only when no transactions) -->
+      <div id="welcomeCard" style="display:none;">
+        <div class="welcome-card">
+          <h2>Welcome to <span>BudgetWise</span> 🎉</h2>
+          <p>Your personal finance command center. Track income, manage expenses, set budgets, and work toward your savings goals — all in one beautiful place.</p>
+          <div class="welcome-steps">
+            <div class="welcome-step">
+              <div class="welcome-step-num">01</div>
+              <p><strong>Add a transaction</strong><br/>Log your first income or expense to get started.</p>
+            </div>
+            <div class="welcome-step">
+              <div class="welcome-step-num">02</div>
+              <p><strong>Set your budget</strong><br/>Define monthly spending limits per category.</p>
+            </div>
+            <div class="welcome-step">
+              <div class="welcome-step-num">03</div>
+              <p><strong>Create goals</strong><br/>Track your progress toward financial milestones.</p>
+            </div>
+          </div>
+          <button class="btn btn-success" onclick="navigateTo('transactions'); setTimeout(()=>document.getElementById('descInput').focus(),300)" style="font-size:14px;padding:12px 28px;">
+            <i class="fas fa-plus"></i> Add Your First Transaction
+          </button>
+          <button class="btn btn-outline" onclick="loadSampleData()" style="font-size:14px;padding:12px 28px;margin-left:10px;">
+            <i class="fas fa-magic"></i> Load Sample Data
+          </button>
+        </div>
+      </div>
+
+      <!-- Summary Cards -->
+      <div class="summary-grid">
+        <div class="summary-card income">
+          <div class="summary-card-header">
+            <span class="summary-label">Total Income</span>
+            <div class="summary-icon"><i class="fas fa-arrow-trend-up"></i></div>
+          </div>
+          <div class="summary-amount" id="dash-income">$0.00</div>
+          <div class="summary-change"><span class="live-dot"></span> &nbsp;This Month</div>
+        </div>
+        <div class="summary-card expense">
+          <div class="summary-card-header">
+            <span class="summary-label">Total Expenses</span>
+            <div class="summary-icon"><i class="fas fa-arrow-trend-down"></i></div>
+          </div>
+          <div class="summary-amount" id="dash-expense">$0.00</div>
+          <div class="summary-change"><span class="live-dot" style="background:var(--red);animation-delay:0.3s;"></span> &nbsp;This Month</div>
+        </div>
+        <div class="summary-card balance">
+          <div class="summary-card-header">
+            <span class="summary-label">Net Balance</span>
+            <div class="summary-icon"><i class="fas fa-scale-balanced"></i></div>
+          </div>
+          <div class="summary-amount" id="dash-balance">$0.00</div>
+          <div class="summary-change" id="dash-balance-status"><i class="fas fa-calendar-alt"></i> All Time</div>
+        </div>
+        <div class="summary-card savings">
+          <div class="summary-card-header">
+            <span class="summary-label">Savings Rate</span>
+            <div class="summary-icon"><i class="fas fa-piggy-bank"></i></div>
+          </div>
+          <div class="summary-amount" id="dash-savings-rate">0%</div>
+          <div class="summary-change"><i class="fas fa-calendar-alt"></i> This Month</div>
+        </div>
+      </div>
+
+      <!-- Charts -->
+      <div class="charts-grid">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title"><i class="fas fa-chart-bar text-blue"></i> Monthly Overview</span>
+            <select class="form-control" style="width:auto;padding:6px 12px;font-size:12px;" id="chartYearSelect" onchange="renderBarChart()"></select>
+          </div>
+          <div class="card-body" style="padding-bottom:16px;">
+            <div class="chart-wrapper"><canvas id="barChart"></canvas></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title"><i class="fas fa-chart-pie text-blue"></i> Expenses by Category</span>
+          </div>
+          <div class="card-body">
+            <div class="chart-wrapper" style="height:240px;"><canvas id="doughnutChart"></canvas></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Transactions -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title"><i class="fas fa-clock text-blue"></i> Recent Transactions</span>
+          <button class="btn btn-outline btn-sm" onclick="navigateTo('transactions')">
+            View All <i class="fas fa-arrow-right"></i>
+          </button>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Description</th>
+                <th>Category</th>
+                <th>Date</th>
+                <th>Type</th>
+                <th class="text-right">Amount</th>
+              </tr>
+            </thead>
+            <tbody id="recentTxBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================
+         TRANSACTIONS SECTION
+    ======================================================== -->
+    <section id="section-transactions" class="section">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h2>Transactions</h2>
+          <p>Manage all your income and expenses</p>
+        </div>
+        <button class="btn btn-success" onclick="scrollToAddForm()">
+          <i class="fas fa-plus"></i> Add Transaction
+        </button>
+      </div>
+
+      <!-- Add/Edit Form -->
+      <div class="add-tx-card" id="addTxCard">
+        <div class="card-header">
+          <span class="card-title" id="formCardTitle"><i class="fas fa-plus-circle text-blue"></i> Add New Transaction</span>
+          <button class="btn btn-outline btn-sm" onclick="resetTransactionForm()" id="cancelEditBtn" style="display:none;">
+            <i class="fas fa-times"></i> Cancel Edit
+          </button>
+        </div>
+        <div class="card-body">
+          <form id="transactionForm" onsubmit="handleTransactionSubmit(event)">
+            <input type="hidden" id="editTxId" value="" />
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label">Description *</label>
+                <input type="text" class="form-control" id="descInput" placeholder="e.g. Grocery shopping" maxlength="100" />
+                <div class="form-error" id="descError"><i class="fas fa-exclamation-circle"></i> Please enter a description</div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Amount *</label>
+                <input type="number" class="form-control" id="amountInput" placeholder="0.00" min="0.01" step="0.01" />
+                <div class="form-error" id="amountError"><i class="fas fa-exclamation-circle"></i> Please enter a valid amount</div>
+              </div>
+            </div>
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label">Transaction Type *</label>
+                <div class="type-toggle">
+                  <input type="radio" name="txType" id="type-income" value="income" checked />
+                  <label for="type-income"><i class="fas fa-arrow-up"></i> Income</label>
+                  <input type="radio" name="txType" id="type-expense" value="expense" />
+                  <label for="type-expense"><i class="fas fa-arrow-down"></i> Expense</label>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Category *</label>
+                <select class="form-control" id="categoryInput">
+                  <option value="">— Select Category —</option>
+                  <option value="Salary">💼 Salary</option>
+                  <option value="Freelance">💻 Freelance</option>
+                  <option value="Investment">📈 Investment</option>
+                  <option value="Food">🍔 Food</option>
+                  <option value="Rent">🏠 Rent</option>
+                  <option value="Transport">🚗 Transport</option>
+                  <option value="Entertainment">🎬 Entertainment</option>
+                  <option value="Health">❤️ Health</option>
+                  <option value="Shopping">🛍️ Shopping</option>
+                  <option value="Education">📚 Education</option>
+                  <option value="Utilities">💡 Utilities</option>
+                  <option value="Other">📦 Other</option>
+                </select>
+                <div class="form-error" id="categoryError"><i class="fas fa-exclamation-circle"></i> Please select a category</div>
+              </div>
+            </div>
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label">Date *</label>
+                <input type="date" class="form-control" id="dateInput" />
+                <div class="form-error" id="dateError"><i class="fas fa-exclamation-circle"></i> Please select a date</div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Notes (Optional)</label>
+                <input type="text" class="form-control" id="notesInput" placeholder="Additional notes..." maxlength="200" />
+              </div>
+            </div>
+            <div style="display:flex;gap:10px;justify-content:flex-end;">
+              <button type="button" class="btn btn-outline" onclick="resetTransactionForm()">
+                <i class="fas fa-undo"></i> Reset
+              </button>
+              <button type="submit" class="btn btn-success" id="txSubmitBtn">
+                <i class="fas fa-check"></i> Add Transaction
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Filter Bar -->
+      <div class="filter-bar">
+        <div class="search-input-wrapper">
+          <i class="fas fa-search search-icon"></i>
+          <input type="text" class="form-control" id="searchInput" placeholder="Search transactions..." oninput="filterTransactions()" />
+        </div>
+        <select class="form-control" id="filterType" onchange="filterTransactions()" style="max-width:130px;">
+          <option value="all">All Types</option>
+          <option value="income">Income</option>
+          <option value="expense">Expense</option>
+        </select>
+        <select class="form-control" id="filterCategory" onchange="filterTransactions()" style="max-width:150px;">
+          <option value="all">All Categories</option>
+          <option value="Salary">Salary</option>
+          <option value="Freelance">Freelance</option>
+          <option value="Investment">Investment</option>
+          <option value="Food">Food</option>
+          <option value="Rent">Rent</option>
+          <option value="Transport">Transport</option>
+          <option value="Entertainment">Entertainment</option>
+          <option value="Health">Health</option>
+          <option value="Shopping">Shopping</option>
+          <option value="Education">Education</option>
+          <option value="Utilities">Utilities</option>
+          <option value="Other">Other</option>
+        </select>
+        <input type="date" class="form-control" id="filterDateFrom" onchange="filterTransactions()" style="max-width:150px;" />
+        <input type="date" class="form-control" id="filterDateTo" onchange="filterTransactions()" style="max-width:150px;" />
+        <select class="form-control" id="sortBy" onchange="filterTransactions()" style="max-width:145px;">
+          <option value="date-desc">Newest First</option>
+          <option value="date-asc">Oldest First</option>
+          <option value="amount-desc">Amount ↓</option>
+          <option value="amount-asc">Amount ↑</option>
+          <option value="category">Category</option>
+        </select>
+        <button class="btn btn-outline btn-sm" onclick="clearFilters()"><i class="fas fa-times"></i> Clear</button>
+      </div>
+
+      <!-- Transaction List -->
+      <div class="tx-list-card">
+        <div class="card-header">
+          <span class="card-title" id="txListTitle"><i class="fas fa-list text-blue"></i> All Transactions</span>
+          <span id="txCount" style="font-size:12px;color:var(--text-secondary);"></span>
+        </div>
+        <div class="table-wrapper">
+          <table id="txTable">
+            <thead>
+              <tr>
+                <th>Description</th>
+                <th>Category</th>
+                <th>Date</th>
+                <th>Notes</th>
+                <th>Type</th>
+                <th class="text-right">Amount</th>
+                <th class="text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="txTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================
+         BUDGET PLANNER SECTION
+    ======================================================== -->
+    <section id="section-budget" class="section">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h2>Budget Planner</h2>
+          <p>Set and track monthly spending limits per category</p>
+        </div>
+        <div style="display:flex;gap:10px;">
+          <button class="btn btn-outline" onclick="resetBudgets()">
+            <i class="fas fa-undo"></i> Reset All
+          </button>
+          <button class="btn btn-primary" onclick="saveBudgets()">
+            <i class="fas fa-save"></i> Save Budgets
+          </button>
+        </div>
+      </div>
+      <div id="budgetWarnings"></div>
+      <div class="budget-grid" id="budgetGrid"></div>
+    </section>
+
+    <!-- ========================================================
+         SAVINGS GOALS SECTION
+    ======================================================== -->
+    <section id="section-goals" class="section">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h2>Savings Goals</h2>
+          <p>Track your progress toward financial milestones</p>
+        </div>
+        <button class="btn btn-success" onclick="openGoalModal()">
+          <i class="fas fa-plus"></i> Add Goal
+        </button>
+      </div>
+      <div class="goals-grid" id="goalsGrid"></div>
+    </section>
+
+    <!-- ========================================================
+         REPORTS SECTION
+    ======================================================== -->
+    <section id="section-reports" class="section">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h2>Reports &amp; Analytics</h2>
+          <p>Deep insights into your financial health</p>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <button class="btn btn-outline" onclick="exportCSV()">
+            <i class="fas fa-file-csv"></i> Export CSV
+          </button>
+          <button class="btn btn-primary" onclick="window.print()">
+            <i class="fas fa-file-pdf"></i> Save as PDF
+          </button>
+          <button class="btn btn-outline" onclick="window.print()">
+            <i class="fas fa-print"></i> Print
+          </button>
+        </div>
+      </div>
+
+      <!-- Monthly Summary Table -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <span class="card-title"><i class="fas fa-table text-blue"></i> Monthly Summary — <span id="reportYear"></span></span>
+        </div>
+        <div class="table-wrapper">
+          <table class="monthly-table">
+            <thead>
+              <tr>
+                <th>Month</th>
+                <th class="text-right">Income</th>
+                <th class="text-right">Expenses</th>
+                <th class="text-right">Net Balance</th>
+                <th class="text-right">Savings Rate</th>
+              </tr>
+            </thead>
+            <tbody id="monthlyTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Charts -->
+      <div class="reports-grid mb-4">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title"><i class="fas fa-chart-line text-blue"></i> Income vs Expense Trend</span>
+          </div>
+          <div class="card-body">
+            <div class="chart-wrapper"><canvas id="trendChart"></canvas></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title"><i class="fas fa-tags text-blue"></i> Expenses by Category</span>
+          </div>
+          <div class="card-body" id="catHbarContainer"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================
+         SETTINGS SECTION
+    ======================================================== -->
+    <section id="section-settings" class="section">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h2>Settings</h2>
+          <p>Customize your BudgetWise experience</p>
+        </div>
+      </div>
+
+      <!-- Profile -->
+      <div class="settings-section">
+        <div class="settings-section-header">
+          <i class="fas fa-user-circle text-blue"></i> User Profile
+        </div>
+        <div class="settings-section-body">
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Your Name</label>
+              <input type="text" class="form-control" id="settingsName" placeholder="Your name" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Currency Symbol</label>
+              <select class="form-control" id="settingsCurrency">
+                <option value="$">$ — US Dollar</option>
+                <option value="€">€ — Euro</option>
+                <option value="£">£ — British Pound</option>
+                <option value="₹">₹ — Indian Rupee</option>
+                <option value="¥">¥ — Japanese Yen</option>
+                <option value="₦">₦ — Nigerian Naira</option>
+                <option value="R">R — South African Rand</option>
+                <option value="C$">C$ — Canadian Dollar</option>
+                <option value="A$">A$ — Australian Dollar</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Monthly Income Goal</label>
+            <input type="number" class="form-control" id="settingsIncomeGoal" placeholder="e.g. 5000" min="0" style="max-width:220px;" />
+          </div>
+          <button class="btn btn-primary" onclick="saveSettings()">
+            <i class="fas fa-save"></i> Save Profile
+          </button>
+        </div>
+      </div>
+
+      <!-- Appearance -->
+      <div class="settings-section">
+        <div class="settings-section-header">
+          <i class="fas fa-palette text-blue"></i> Appearance
+        </div>
+        <div class="settings-section-body">
+          <div class="setting-row">
+            <div>
+              <div class="setting-label">Dark Mode</div>
+              <div class="setting-desc">Switch between light and dark theme</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="darkModeToggle" onchange="toggleDarkMode()" />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Data Management -->
+      <div class="settings-section">
+        <div class="settings-section-header">
+          <i class="fas fa-database text-blue"></i> Data Management
+        </div>
+        <div class="settings-section-body">
+          <div class="setting-row">
+            <div>
+              <div class="setting-label">Export Data</div>
+              <div class="setting-desc">Download all your data as a JSON backup</div>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="exportJSON()">
+              <i class="fas fa-download"></i> Export JSON
+            </button>
+          </div>
+          <div class="setting-row">
+            <div>
+              <div class="setting-label">Import Data</div>
+              <div class="setting-desc">Restore from a JSON backup file</div>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <input type="file" id="importFileInput" accept=".json" style="display:none;" onchange="importJSON(event)" />
+              <button class="btn btn-outline btn-sm" onclick="document.getElementById('importFileInput').click()">
+                <i class="fas fa-upload"></i> Import JSON
+              </button>
+            </div>
+          </div>
+          <div class="setting-row">
+            <div>
+              <div class="setting-label" style="color:var(--red);">Clear All Data</div>
+              <div class="setting-desc">Permanently delete all transactions, budgets, and goals</div>
+            </div>
+            <button class="btn btn-danger btn-sm" onclick="confirmClearData()">
+              <i class="fas fa-trash"></i> Clear Data
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- About -->
+      <div class="settings-section">
+        <div class="settings-section-header">
+          <i class="fas fa-info-circle text-blue"></i> About
+        </div>
+        <div class="settings-section-body">
+          <div class="setting-row">
+            <div class="setting-label">BudgetWise</div>
+            <div style="font-size:13px;color:var(--text-secondary);">Version 2.0.0</div>
+          </div>
+          <div class="setting-row">
+            <div class="setting-label">Data Storage</div>
+            <div style="font-size:13px;color:var(--emerald);font-weight:700;">🔒 Local (your browser only)</div>
+          </div>
+          <div class="setting-row">
+            <div class="setting-label">Keyboard Shortcut</div>
+            <div style="font-size:13px;color:var(--text-secondary);">Press <kbd>N</kbd> to add a transaction</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div><!-- /.page-content -->
+</main><!-- /#main-content -->
+
+<!-- ============================================================
+     GOAL MODAL
+============================================================ -->
+<div class="modal-overlay" id="goalModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="goalModalTitle">Add Savings Goal</div>
+      <button class="modal-close" onclick="closeGoalModal()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <form id="goalForm" onsubmit="handleGoalSubmit(event)">
+        <input type="hidden" id="editGoalId" value="" />
+        <div class="form-group">
+          <label class="form-label">Goal Name *</label>
+          <input type="text" class="form-control" id="goalName" placeholder="e.g. Emergency Fund" />
+          <div class="form-error" id="goalNameError"><i class="fas fa-exclamation-circle"></i> Please enter a goal name</div>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Target Amount *</label>
+            <input type="number" class="form-control" id="goalTarget" placeholder="0.00" min="1" step="0.01" />
+            <div class="form-error" id="goalTargetError"><i class="fas fa-exclamation-circle"></i> Please enter a valid amount</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Current Saved *</label>
+            <input type="number" class="form-control" id="goalCurrent" placeholder="0.00" min="0" step="0.01" value="0" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Target Date *</label>
+          <input type="date" class="form-control" id="goalDate" />
+          <div class="form-error" id="goalDateError"><i class="fas fa-exclamation-circle"></i> Please select a target date</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Goal Emoji (Optional)</label>
+          <input type="text" class="form-control" id="goalEmoji" placeholder="🎯" maxlength="4" />
+        </div>
+        <div class="modal-footer" style="padding:0;">
+          <button type="button" class="btn btn-outline" onclick="closeGoalModal()">Cancel</button>
+          <button type="submit" class="btn btn-success" id="goalSubmitBtn">
+            <i class="fas fa-check"></i> Save Goal
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     CONFIRMATION MODAL
+============================================================ -->
+<div class="modal-overlay" id="confirm-modal">
+  <div class="modal" style="max-width:380px;">
+    <div class="modal-header">
+      <div class="modal-title" id="confirmTitle">Confirm Action</div>
+      <button class="modal-close" onclick="closeConfirmModal()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <p id="confirmMessage" style="font-size:14px;color:var(--text-secondary);line-height:1.7;"></p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeConfirmModal()">Cancel</button>
+      <button class="btn btn-danger" id="confirmActionBtn">
+        <i class="fas fa-check"></i> Confirm
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div id="toast-container"></div>
+
+<!-- ============================================================
+     JAVASCRIPT
+============================================================ -->
+<script src="app.js"></script>
+</body>
+</html>

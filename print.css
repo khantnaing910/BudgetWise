@@ -1,0 +1,27 @@
+
+/* Print Styles */
+@media print {
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+  #sidebar, .top-header, .filter-bar, .modal-overlay, #toast-container, .btn:not(.btn-print) {
+    display: none !important;
+  }
+  #main-content {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  .card, .summary-card, .goal-card {
+    box-shadow: none !important;
+    border: 1px solid #ccc !important;
+    break-inside: avoid;
+  }
+  .chart-wrapper {
+    break-inside: avoid;
+  }
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
