@@ -17,7 +17,7 @@ BudgetWise is a sleek, modern, client-side personal finance manager built with v
 
 ## 🚀 Live Demo
 
-You can view the live application here: [Insert GitHub Pages URL Here]
+You can view the live application here: **[https://khantnaing910.github.io/BudgetWise/](https://khantnaing910.github.io/BudgetWise/)**
 
 ## 🛠️ Installation & Usage
 
@@ -25,7 +25,7 @@ Because BudgetWise is a static application, no build tools or servers are requir
 
 1. Clone or download the repository:
    ```bash
-   git clone https://github.com/yourusername/budgetwise.git
+   git clone https://github.com/khantnaing910/BudgetWise.git
    ```
 2. Open the folder and double-click `index.html` to open it in any modern web browser.
 3. Start logging! You can also click "Load Sample Data" on the welcome screen to populate the app with mock data to see how it looks.
