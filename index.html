@@ -16,7 +16,20 @@
 
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="print.css" media="print" />
+
+  <!-- PWA Support -->
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#10b981" />
+  <link rel="apple-touch-icon" href="icon.png" />
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').catch(err => console.log('SW setup failed', err));
+      });
+    }
+  </script>
 </head>
+
 <body>
 
 <!-- Sidebar Overlay -->
@@ -174,6 +187,17 @@
           </div>
           <div class="summary-amount" id="dash-savings-rate">0%</div>
           <div class="summary-change"><i class="fas fa-calendar-alt"></i> This Month</div>
+        </div>
+      </div>
+
+      
+      <!-- Smart Insights -->
+      <div class="card mb-6" id="insightsContainer">
+        <div class="card-header">
+          <span class="card-title"><i class="fas fa-lightbulb" style="color:var(--amber);"></i> Smart Insights</span>
+        </div>
+        <div class="card-body" id="smartInsightsBody" style="display:flex; flex-direction:column; gap:12px;">
+          <!-- Filled by JS -->
         </div>
       </div>
 
@@ -458,6 +482,17 @@
         </div>
       </div>
 
+      
+      <!-- Smart Insights -->
+      <div class="card mb-6" id="insightsContainer">
+        <div class="card-header">
+          <span class="card-title"><i class="fas fa-lightbulb" style="color:var(--amber);"></i> Smart Insights</span>
+        </div>
+        <div class="card-body" id="smartInsightsBody" style="display:flex; flex-direction:column; gap:12px;">
+          <!-- Filled by JS -->
+        </div>
+      </div>
+
       <!-- Charts -->
       <div class="reports-grid mb-4">
         <div class="card">
@@ -673,6 +708,25 @@
       <button class="btn btn-danger" id="confirmActionBtn">
         <i class="fas fa-check"></i> Confirm
       </button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ============================================================
+     SHORTCUT MODAL
+============================================================ -->
+<div class="modal-overlay" id="shortcutModal">
+  <div class="modal" style="max-width: 400px;">
+    <div class="modal-header">
+      <div class="modal-title"><i class="fas fa-keyboard text-blue"></i> Keyboard Shortcuts</div>
+      <button class="modal-close" onclick="closeShortcutModal()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="setting-row"><div class="setting-label">New Transaction</div><kbd>N</kbd></div>
+      <div class="setting-row"><div class="setting-label">Search Transactions</div><kbd>/</kbd></div>
+      <div class="setting-row"><div class="setting-label">Close Modals</div><kbd>Esc</kbd></div>
+      <div class="setting-row"><div class="setting-label">Show Shortcuts</div><kbd>?</kbd></div>
     </div>
   </div>
 </div>

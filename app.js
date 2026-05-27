@@ -191,6 +191,65 @@ function closeMobileSidebar() {
 /* ============================================================
    4. DASHBOARD
 ============================================================ */
+
+function renderInsights() {
+  const container = document.getElementById('smartInsightsBody');
+  if (!container) return;
+  
+  const now = new Date();
+  const m = now.getMonth();
+  const y = now.getFullYear();
+  
+  const currentTxs = state.transactions.filter(t => {
+    const d = new Date(t.date);
+    return d.getMonth() === m && d.getFullYear() === y;
+  });
+  
+  const expenses = currentTxs.filter(t => t.type === 'expense');
+  let insights = [];
+  
+  // Highest expense insight
+  if (expenses.length > 0) {
+    const highest = expenses.reduce((prev, curr) => (curr.amount > prev.amount) ? curr : prev);
+    insights.push(`<div style="display:flex; gap:10px; align-items:flex-start;"><i class="fas fa-chart-pie" style="color:var(--blue); margin-top:3px;"></i> <span>Your largest expense this month is <strong>${escHtml(highest.description)}</strong> (${formatCurrency(highest.amount)}).</span></div>`);
+  }
+  
+  // Budget warnings insight
+  let overBudgets = 0;
+  let nearBudgets = 0;
+  const spent = {};
+  expenses.forEach(t => { spent[t.category] = (spent[t.category]||0) + t.amount; });
+  
+  Object.keys(state.budgets).forEach(cat => {
+    const limit = state.budgets[cat];
+    const s = spent[cat] || 0;
+    if (limit > 0) {
+      if (s >= limit) overBudgets++;
+      else if ((s/limit) >= 0.8) nearBudgets++;
+    }
+  });
+  
+  if (overBudgets > 0) {
+    insights.push(`<div style="display:flex; gap:10px; align-items:flex-start;"><i class="fas fa-exclamation-circle" style="color:var(--red); margin-top:3px;"></i> <span>You have exceeded your budget in <strong>${overBudgets} category(ies)</strong>.</span></div>`);
+  } else if (nearBudgets > 0) {
+    insights.push(`<div style="display:flex; gap:10px; align-items:flex-start;"><i class="fas fa-exclamation-triangle" style="color:var(--amber); margin-top:3px;"></i> <span>You are nearing your limit in <strong>${nearBudgets} category(ies)</strong>. Keep an eye on your spending!</span></div>`);
+  } else if (expenses.length > 0) {
+    insights.push(`<div style="display:flex; gap:10px; align-items:flex-start;"><i class="fas fa-check-circle" style="color:var(--emerald); margin-top:3px;"></i> <span>You are staying within all your defined budgets. Great job!</span></div>`);
+  }
+  
+  // Savings goal insight
+  const completedGoals = state.goals.filter(g => g.current >= g.target).length;
+  if (completedGoals > 0 && Math.random() > 0.5) {
+     insights.push(`<div style="display:flex; gap:10px; align-items:flex-start;"><i class="fas fa-star" style="color:var(--purple); margin-top:3px;"></i> <span>You have achieved <strong>${completedGoals} savings goal(s)</strong>! Consider starting a new one.</span></div>`);
+  }
+  
+  if (insights.length === 0) {
+    insights.push(`<div style="color:var(--text-muted); font-size:13px;">Not enough data this month to generate insights. Log more transactions!</div>`);
+  }
+  
+  container.innerHTML = insights.join('');
+}
+
 function renderDashboard() {
   const now = new Date();
   const month = now.getMonth();
@@ -226,6 +285,7 @@ function renderDashboard() {
   renderBarChart();
   renderDoughnutChart();
   renderRecentTransactions();
+  renderInsights();
   updateBadges();
   populateYearSelect();
 }
@@ -569,6 +629,9 @@ function renderTransactionTable(txs) {
         <button class="btn btn-outline btn-sm btn-icon" onclick="editTransaction('${tx.id}')" data-tooltip="Edit">
           <i class="fas fa-edit"></i>
         </button>
+        <button class="btn btn-outline btn-sm btn-icon" onclick="duplicateTransaction(\'${tx.id}\')" data-tooltip="Duplicate" style="margin-left:6px;">
+          <i class="fas fa-copy"></i>
+        </button>
         <button class="btn btn-danger btn-sm btn-icon" onclick="confirmDeleteTransaction('${tx.id}')" data-tooltip="Delete" style="margin-left:6px;">
           <i class="fas fa-trash"></i>
         </button>
@@ -626,6 +689,18 @@ function validateTransactionForm() {
 function setFieldError(fieldId, errId, show) {
   document.getElementById(fieldId).classList.toggle('error', show);
   document.getElementById(errId).classList.toggle('show', show);
+}
+
+
+function duplicateTransaction(id) {
+  const tx = state.transactions.find(t => t.id === id);
+  if (!tx) return;
+  const newTx = { ...tx, id: String(Date.now()), date: new Date().toISOString().split('T')[0], createdAt: Date.now() };
+  state.transactions.unshift(newTx);
+  saveState();
+  filterTransactions();
+  updateBadges();
+  showToast('Transaction duplicated to today!', 'success');
 }
 
 function editTransaction(id) {
@@ -1250,8 +1325,27 @@ function animateCounter(elId, targetValue, isCurrency = false) {
 /* ============================================================
    16. KEYBOARD SHORTCUTS
 ============================================================ */
+
+function openShortcutModal() {
+  document.getElementById('shortcutModal').classList.add('show');
+}
+function closeShortcutModal() {
+  document.getElementById('shortcutModal').classList.remove('show');
+}
+
+
 document.addEventListener('keydown', (e) => {
   if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
+  if (e.key === '?' || e.key === '¿') {
+    e.preventDefault();
+    openShortcutModal();
+  }
+  if (e.key === '/') {
+    e.preventDefault();
+    navigateTo('transactions');
+    setTimeout(() => document.getElementById('searchInput').focus(), 300);
+  }
+
   if (e.key === 'N' || e.key === 'n') {
     navigateTo('transactions');
     setTimeout(() => document.getElementById('descInput').focus(), 200);
@@ -1261,6 +1355,7 @@ document.addEventListener('keydown', (e) => {
     closeGoalModal();
     closeConfirmModal();
     closeMobileSidebar();
+    closeShortcutModal();
   }
 });
 
@@ -1281,6 +1376,9 @@ document.getElementById('goalModal').addEventListener('click', (e) => {
 });
 document.getElementById('confirm-modal').addEventListener('click', (e) => {
   if (e.target === document.getElementById('confirm-modal')) closeConfirmModal();
+});
+document.getElementById('shortcutModal').addEventListener('click', (e) => {
+  if (e.target === document.getElementById('shortcutModal')) closeShortcutModal();
 });
 
 /* ============================================================
