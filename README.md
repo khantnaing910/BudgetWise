@@ -2,8 +2,6 @@
 
 BudgetWise is a sleek, modern, client-side personal finance manager built with vanilla HTML, CSS, and JavaScript. Track your income, manage expenses, set budgets, and monitor savings goals entirely within your browser.
 
-![BudgetWise Preview](https://via.placeholder.com/800x400.png?text=BudgetWise+Dashboard)
-
 ## 🌟 Features
 
 - **Dashboard:** Get a birds-eye view of your net balance, savings rate, and recent transactions.
