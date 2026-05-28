@@ -55,4 +55,4 @@ If you want to switch browsers or back up your data:
 
 ## 📝 License
 
-This project is completely open-source and free to use. Modify it, share it, and make it your own!
+This project is completely open-source and free to use. 
